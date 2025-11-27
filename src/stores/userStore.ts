@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { socketService } from '../services/socket'
 
 export const useUserStore = defineStore('user', {
     state: () => ({
@@ -13,7 +14,7 @@ export const useUserStore = defineStore('user', {
         async fetchProfile() {
             this.isLoading = true
             try {
-                const response = await axios.get('/api/users/me')
+                const response = await axios.get('/users/me')
                 if (response.data && response.data.user) {
                     this.user = response.data.user
                     this.isAuthenticated = true
@@ -33,32 +34,42 @@ export const useUserStore = defineStore('user', {
         async login(identifier: string, password: string) {
             this.isLoading = true
             try {
-                const response = await axios.post('/api/auth/login', { username: identifier, password })
+                const response = await axios.post('/auth/login', { username: identifier, password })
                 if (response.data && response.data.token) {
                     localStorage.setItem('token', response.data.token)
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`
                     this.isAuthenticated = true
+
+                    // Fetch user profile
                     await this.fetchProfile()
+
+                    // Connect WebSocket after successful login
+                    console.log('🔌 Connecting to WebSocket...')
+                    socketService.connect(response.data.token)
                 }
             } catch (error) {
+                console.error('Login failed:', error)
                 throw error
             } finally {
                 this.isLoading = false
             }
         },
         initializeAuth() {
+            // Token is automatically handled by axios interceptors
+            // Just check if token exists for initial WebSocket connection
             const token = localStorage.getItem('token')
-            if (token) {
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-            }
+            return !!token
         },
         logout() {
             localStorage.removeItem('token')
-            delete axios.defaults.headers.common['Authorization']
             this.user = null
             this.isAuthenticated = false
             this.friends = []
             this.friendRequests = []
+
+            // Disconnect WebSocket
+            console.log('🔌 Disconnecting WebSocket...')
+            socketService.disconnect()
+
             // Force reload to clear any other state or redirect
             window.location.href = '/login'
         }

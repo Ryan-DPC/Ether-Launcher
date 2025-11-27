@@ -4,6 +4,9 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
+// Configure axios globally with interceptors
+import './utils/axiosConfig'
+
 import './assets/css/global.css'
 
 const app = createApp(App)
