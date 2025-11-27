@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useItemStore } from '../stores/itemStore'
-import { useUserStore } from '../stores/userStore'
-
 const itemStore = useItemStore()
-const userStore = useUserStore()
 
 const typeFilter = ref('')
 const rarityFilter = ref('')

@@ -8,10 +8,8 @@ const userStore = useUserStore()
 
 const activeTab = ref('marketplace')
 const showSellModal = ref(false)
-const showBuyModal = ref(false)
 const selectedGameForSale = ref('')
 const sellPrice = ref(0)
-const selectedGameToBuy = ref(null as any)
 
 // Filters
 const genreFilter = ref('')

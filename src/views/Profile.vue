@@ -2,12 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useUserStore } from '../stores/userStore'
 import { useItemStore } from '../stores/itemStore'
-import { useRoute } from 'vue-router'
 import axios from 'axios'
 
 const userStore = useUserStore()
 const itemStore = useItemStore()
-const route = useRoute()
 
 const activeTab = ref('about')
 const typeFilter = ref('')
@@ -28,6 +26,8 @@ const handleFileUpload = async (event: Event) => {
   if (!target.files || target.files.length === 0) return
 
   const file = target.files[0]
+  if (!file) return
+
   const formData = new FormData()
   formData.append('avatar', file as Blob)
 

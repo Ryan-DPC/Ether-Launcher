@@ -100,7 +100,7 @@ const router = createRouter({
     ]
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
     const userStore = useUserStore()
 
     // If going to login/register, just proceed
