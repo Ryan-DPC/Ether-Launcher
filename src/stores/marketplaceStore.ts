@@ -19,12 +19,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
                 if (filters.genre) params.set('genre', filters.genre)
                 if (filters.sort) params.set('sort', filters.sort)
 
-                const response = await axios.get(`/game-ownership/marketplace?${params}`, {
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                })
+                const response = await axios.get(`/game-ownership/marketplace?${params}`)
                 this.usedGames = response.data || []
             } catch (error) {
                 console.error('Failed to fetch used games:', error)

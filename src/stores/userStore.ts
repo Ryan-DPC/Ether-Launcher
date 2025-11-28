@@ -57,6 +57,10 @@ export const useUserStore = defineStore('user', {
             // Token is automatically handled by axios interceptors
             // Just check if token exists for initial WebSocket connection
             const token = localStorage.getItem('token')
+            if (token) {
+                console.log('🔌 Connecting to WebSocket (initializeAuth)...')
+                socketService.connect(token)
+            }
             return !!token
         },
         logout() {

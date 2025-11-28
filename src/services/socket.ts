@@ -20,6 +20,9 @@ class SocketService {
         const socketUrl = import.meta.env.VITE_WEBSOCKET_URL || 'https://server-yi14.onrender.com';
         this.socket = io(socketUrl, {
             auth: { token },
+            extraHeaders: {
+                Authorization: `Bearer ${token}`
+            },
             transports: ['websocket', 'polling']
         });
 
