@@ -48,7 +48,7 @@ onMounted(async () => {
 
   // Setup Electron installation event listeners
   if (window.electronAPI) {
-    window.electronAPI.onInstallProgress((data) => {
+    window.electronAPI.onInstallProgress((data: any) => {
       console.log('Installation progress:', data)
       if (installingGameId.value) {
         installProgress.value = {
@@ -62,7 +62,7 @@ onMounted(async () => {
       }
     })
 
-    window.electronAPI.onInstallComplete(async (data) => {
+    window.electronAPI.onInstallComplete(async (data: any) => {
       try {
         // Sync status with backend
         await axios.post('/installation/status', {
@@ -72,7 +72,7 @@ onMounted(async () => {
         })
         
         // Update local state immediately to reflect "Installed" status in UI
-        const game = gameStore.myGames.find(g => (g._id === data.gameId || g.folder_name === data.gameId))
+        const game = gameStore.myGames.find((g: any) => (g._id === data.gameId || g.folder_name === data.gameId))
         if (game) {
           game.installed = true
           game.status = 'installed'
@@ -92,7 +92,7 @@ onMounted(async () => {
       }
     })
 
-    window.electronAPI.onInstallError((data) => {
+    window.electronAPI.onInstallError((data: any) => {
       new Notification('Ether Desktop', {
         body: `❌ Erreur lors de l'installation de ${data.gameName}: ${data.error}`
       })
@@ -201,7 +201,8 @@ const installGame = async (gameId: string, gameName: string) => {
       installPath,
       game.folder_name || gameId,
       gameId,
-      gameName
+      gameName,
+      game.version || '1.0.0' // Fallback version if not available in list
     )
 
     if (result.success) {
