@@ -19,7 +19,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
                 if (filters.genre) params.set('genre', filters.genre)
                 if (filters.sort) params.set('sort', filters.sort)
 
-                const response = await axios.get(`/api/game-ownership/marketplace?${params}`, {
+                const response = await axios.get(`/game-ownership/marketplace?${params}`, {
                     headers: {
                         'Cache-Control': 'no-cache',
                         'Pragma': 'no-cache'
@@ -35,7 +35,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async fetchOwnedGames() {
             try {
-                const response = await axios.get('/api/game-ownership/my-games')
+                const response = await axios.get('/game-ownership/my-games')
                 this.ownedGames = response.data || []
             } catch (error) {
                 console.error('Failed to fetch owned games:', error)
@@ -44,7 +44,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async fetchActiveSales() {
             try {
-                const response = await axios.get('/api/game-ownership/my-sales')
+                const response = await axios.get('/game-ownership/my-sales')
                 this.activeSales = response.data || []
             } catch (error) {
                 console.error('Failed to fetch active sales:', error)
@@ -53,7 +53,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async fetchTransactions() {
             try {
-                const response = await axios.get('/api/game-ownership/transactions')
+                const response = await axios.get('/game-ownership/transactions')
                 this.transactions = response.data || []
             } catch (error) {
                 console.error('Failed to fetch transactions:', error)
@@ -62,7 +62,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async buyUsedGame(ownershipToken: string, sellerId: string) {
             try {
-                const response = await axios.post('/api/game-ownership/purchase-used', {
+                const response = await axios.post('/game-ownership/purchase-used', {
                     ownershipToken,
                     sellerId
                 })
@@ -74,7 +74,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async sellGame(gameKey: string, askingPrice: number) {
             try {
-                const response = await axios.post('/api/game-ownership/sell', {
+                const response = await axios.post('/game-ownership/sell', {
                     gameKey,
                     askingPrice
                 })
@@ -86,7 +86,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async cancelSale(ownershipToken: string) {
             try {
-                await axios.post('/api/game-ownership/cancel-sale', { ownershipToken })
+                await axios.post('/game-ownership/cancel-sale', { ownershipToken })
                 await this.fetchActiveSales()
             } catch (error) {
                 throw error
@@ -94,7 +94,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async fetchGameStats(gameKey: string) {
             try {
-                const response = await axios.get(`/api/game-ownership/stats/${gameKey}`)
+                const response = await axios.get(`/game-ownership/stats/${gameKey}`)
                 return response.data
             } catch (error) {
                 console.error('Failed to fetch game stats:', error)
@@ -103,7 +103,7 @@ export const useMarketplaceStore = defineStore('marketplace', {
         },
         async deleteListing(ownershipToken: string) {
             try {
-                await axios.delete(`/api/game-ownership/marketplace/${ownershipToken}`)
+                await axios.delete(`/game-ownership/marketplace/${ownershipToken}`)
                 await this.fetchUsedGames()
             } catch (error) {
                 throw error

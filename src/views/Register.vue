@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useUserStore } from '../stores/userStore'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const username = ref('')
 const email = ref('')
@@ -20,30 +21,19 @@ const handleRegister = async () => {
     }
     
     try {
-        const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: username.value,
-                email: email.value,
-                password: password.value
-            })
+        const response = await axios.post('/auth/register', {
+            username: username.value,
+            email: email.value,
+            password: password.value
         })
-        
-        const data = await response.json()
-        
-        if (!response.ok) {
-            error.value = data.message || 'Registration failed'
-            return
-        }
-        
-        if (data.success) {
+
+        if (response.data.success) {
             // Auto-login after registration using username
             await userStore.login(username.value, password.value)
             router.push('/home')
         }
     } catch (e: any) {
-        error.value = e.message || 'Registration failed'
+        error.value = e.response?.data?.message || e.message || 'Registration failed'
     }
 }
 

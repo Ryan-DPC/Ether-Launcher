@@ -77,7 +77,7 @@ onUnmounted(() => {
 
 const loadFriend = async () => {
   try {
-    const response = await axios.get(`/api/users/${friendId}`)
+    const response = await axios.get(`/users/${friendId}`)
     user.value = response.data.user
   } catch (error) {
     console.error('Failed to load friend:', error)
@@ -86,7 +86,7 @@ const loadFriend = async () => {
 
 const loadMessages = async () => {
   try {
-    const response = await axios.get(`/api/chat/conversation/${friendId}`)
+    const response = await axios.get(`/chat/conversation/${friendId}`)
     messages.value = response.data.messages || []
   } catch (error) {
     console.error('Failed to load messages:', error)
@@ -117,7 +117,7 @@ const sendMessage = async () => {
 
   // Also save to database via HTTP
   try {
-    await axios.post(`/api/chat/send`, {
+    await axios.post(`/chat/send`, {
       toUserId: friendId,
       content: messageContent
     })

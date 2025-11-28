@@ -41,7 +41,7 @@ const handleFileUpload = async (event: Event) => {
     }
     reader.readAsDataURL(file)
 
-    const response = await axios.post('/api/users/avatar', formData, {
+    const response = await axios.post('/users/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -78,7 +78,7 @@ const switchTab = (tab: string) => {
 
 const fetchFriends = async () => {
   try {
-    const response = await axios.get('/api/friends/list')
+    const response = await axios.get('/friends/list')
     friends.value = response.data.friends || []
   } catch (error) {
     console.error('Failed to fetch friends')
@@ -87,7 +87,7 @@ const fetchFriends = async () => {
 
 const fetchRecentGames = async () => {
   try {
-    const response = await axios.get('/api/users/recent-games')
+    const response = await axios.get('/users/recent-games')
     recentGames.value = response.data.games || []
   } catch (error) {
     console.error('Failed to fetch recent games')

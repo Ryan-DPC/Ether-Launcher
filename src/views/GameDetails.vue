@@ -13,21 +13,17 @@ const isPurchasing = ref(false)
 
 onMounted(async () => {
     try {
-        // Try dev games first
-        const response = await fetch(`/api/dev-games/${gameId}`)
-        if (response.ok) {
-            const data = await response.json()
-            if (data.success && data.game) {
-                game.value = data.game
-                
-                // Check if user owns this game
-                try {
-                    const libraryResponse = await axios.get('/api/library/my-games')
-                    const ownedGames = libraryResponse.data.games || []
-                    userOwnsGame.value = ownedGames.some((g: any) => g.folder_name === game.value.slug || g.game_name === game.value.gameName)
-                } catch (err) {
-                    console.log('Could not fetch library (user may not be logged in)')
-                }
+        const response = await axios.get(`/dev-games/${gameId}`)
+        if (response.data && response.data.success && response.data.game) {
+            game.value = response.data.game
+            
+            // Check if user owns this game
+            try {
+                const libraryResponse = await axios.get('/library/my-games')
+                const ownedGames = libraryResponse.data.games || []
+                userOwnsGame.value = ownedGames.some((g: any) => g.folder_name === game.value.slug || g.game_name === game.value.gameName)
+            } catch (err) {
+                console.log('Could not fetch library (user may not be logged in)')
             }
         } else {
             // Fallback to normal games?
@@ -46,7 +42,7 @@ const purchaseGame = async () => {
     
     isPurchasing.value = true
     try {
-        const response = await axios.post('/api/library/purchase-game', {
+        const response = await axios.post('/library/purchase-game', {
             gameId: game.value.slug,
             price: game.value.price
         })

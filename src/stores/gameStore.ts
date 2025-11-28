@@ -12,7 +12,7 @@ export const useGameStore = defineStore('game', {
         async fetchHomeData() {
             this.isLoading = true
             try {
-                const response = await axios.get('/api/games/all')
+                const response = await axios.get('/games/all')
                 this.games = response.data || []
                 this.newGames = response.data.newGames || []
             } catch (error) {
@@ -24,7 +24,7 @@ export const useGameStore = defineStore('game', {
         async fetchMyGames() {
             this.isLoading = true
             try {
-                const response = await axios.get('/api/library/my-games')
+                const response = await axios.get('/library/my-games')
                 this.myGames = response.data || []
             } catch (error) {
                 console.error('Failed to fetch my games:', error)

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useGameStore } from '../stores/gameStore'
 import { RouterLink } from 'vue-router'
+import axios from 'axios'
 
 const gameStore = useGameStore()
 const devGames = ref<any[]>([])
@@ -14,10 +15,9 @@ onMounted(async () => {
     // Fetch dev games
     isLoadingDev.value = true
     try {
-        const response = await fetch('/api/dev-games')
-        const data = await response.json()
-        if (data.success && data.games) {
-            devGames.value = data.games
+        const response = await axios.get('/dev-games')
+        if (response.data && response.data.success && response.data.games) {
+            devGames.value = response.data.games
         }
     } catch (error) {
         console.error('Failed to fetch dev games:', error)

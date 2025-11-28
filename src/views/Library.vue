@@ -65,7 +65,7 @@ onMounted(async () => {
     window.electronAPI.onInstallComplete(async (data) => {
       try {
         // Sync status with backend
-        await axios.post('/api/installation/status', {
+        await axios.post('/installation/status', {
           gameId: data.gameId,
           status: 'installed',
           path: data.path
@@ -132,27 +132,22 @@ const selectGame = (index: number) => {
 const handleAddGame = async () => {
   try {
     // Call API to add game with key
-    const response = await fetch('/api/game-ownership/redeem-key', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const response = await axios.post('/game-ownership/redeem-key', {
         key: newGameKey.value,
         gameName: newGameName.value
-      })
     })
     
-    if (response.ok) {
+    if (response.status === 200 || response.status === 201) {
       alert('Jeu ajouté avec succès!')
       showAddGameModal.value = false
       newGameKey.value = ''
       newGameName.value = ''
       await gameStore.fetchHomeData()
     } else {
-      const data = await response.json()
-      alert(data.message || 'Erreur lors de l\'ajout')
+      alert(response.data.message || 'Erreur lors de l\'ajout')
     }
-  } catch (error) {
-    alert('Erreur réseau')
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Erreur réseau')
   }
 }
 
@@ -192,7 +187,7 @@ const installGame = async (gameId: string, gameName: string) => {
     }
 
     // Get game metadata from backend
-    const gameResponse = await axios.get(`/api/games/${gameId}`)
+    const gameResponse = await axios.get(`/games/${gameId}`)
     const game = gameResponse.data
     
     if (!game.zipUrl) {

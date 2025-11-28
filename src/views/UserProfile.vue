@@ -12,7 +12,7 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const response = await axios.get(`/api/users/${userId}`)
+    const response = await axios.get(`/users/${userId}`)
     user.value = response.data.user
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Utilisateur introuvable'
