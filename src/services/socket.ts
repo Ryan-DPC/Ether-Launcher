@@ -17,7 +17,7 @@ class SocketService {
         }
 
         // Initialize socket connection to central WebSocket server
-        const socketUrl = 'https://server-yi14.onrender.com';
+        const socketUrl = import.meta.env.VITE_WEBSOCKET_URL || 'https://server-yi14.onrender.com';
         this.socket = io(socketUrl, {
             auth: { token },
             transports: ['websocket', 'polling']

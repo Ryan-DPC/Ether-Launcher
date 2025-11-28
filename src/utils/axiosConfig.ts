@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Configure axios defaults
-axios.defaults.baseURL = '/api'
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '/api'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 // Request interceptor - automatically add Authorization header
