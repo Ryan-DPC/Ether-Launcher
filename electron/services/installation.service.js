@@ -183,14 +183,34 @@ class InstallationService {
     }
 
     /**
+     * Create installed.json file with version info
+     * @param {string} gamePath - Path to game folder
+     * @param {string} version - Game version
+     */
+    async createInstalledFile(gamePath, version) {
+        try {
+            const installedData = {
+                version: version,
+                installedAt: new Date().toISOString()
+            };
+            await fs.writeFile(path.join(gamePath, 'installed.json'), JSON.stringify(installedData, null, 2));
+            console.log(`[Installation] Created installed.json for version ${version}`);
+        } catch (error) {
+            console.error('[Installation] Failed to create installed.json:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Full installation process
      * @param {string} zipUrl - Game ZIP URL
      * @param {string} installPath - Base install path (e.g., C:/Games/Ether)
      * @param {string} gameFolderName - Game folder name (e.g., spludbuster)
+     * @param {string} version - Game version
      * @param {Function} onProgress - Progress callback
      * @returns {Promise<object>} Installation result
      */
-    async installGame(zipUrl, installPath, gameFolderName, onProgress) {
+    async installGame(zipUrl, installPath, gameFolderName, version, onProgress) {
         // Ensure we install inside an 'Ether' directory
         const gamePath = path.join(installPath, 'Ether', gameFolderName);
         const zipPath = path.join(gamePath, 'game.zip');
@@ -208,7 +228,10 @@ class InstallationService {
                 throw new Error('Installation validation failed');
             }
 
-            // Step 4: Cleanup
+            // Step 4: Create installed.json
+            await this.createInstalledFile(gamePath, version);
+
+            // Step 5: Cleanup
             await this.cleanup(zipPath);
 
             return {

@@ -11,6 +11,20 @@ const error = ref<string | null>(null)
 const userOwnsGame = ref(false)
 const isPurchasing = ref(false)
 
+// Installation state
+const isInstalled = ref(false)
+const hasUpdate = ref(false)
+const installingGameId = ref<string | null>(null)
+const isInstalling = ref(false)
+const installProgress = ref({
+  progress: 0,
+  speed: '',
+  downloaded: '',
+  total: '',
+  eta: '',
+  type: 'download'
+})
+
 onMounted(async () => {
     try {
         const response = await axios.get(`/dev-games/${gameId}`)
@@ -25,8 +39,13 @@ onMounted(async () => {
             } catch (err) {
                 console.log('Could not fetch library (user may not be logged in)')
             }
+
+            // Check installation status
+            if (window.electronAPI) {
+                checkInstallationStatus()
+                setupInstallListeners()
+            }
         } else {
-            // Fallback to normal games?
             error.value = 'Jeu non trouvé'
         }
     } catch (err) {
@@ -36,6 +55,128 @@ onMounted(async () => {
         isLoading.value = false
     }
 })
+
+const checkInstallationStatus = async () => {
+    const installPath = localStorage.getItem('etherInstallPath')
+    if (!installPath || !game.value) return
+
+    // Check if folder exists
+    const isFolderExists = await window.electronAPI?.checkGameInstalled(installPath, game.value.slug)
+    
+    if (isFolderExists) {
+        // TODO: Read installed.json to check version
+        // For now, assume installed if folder exists
+        isInstalled.value = true
+        
+        // If we could read installed.json, we would compare versions here
+        // hasUpdate.value = installedVersion.value !== game.value.version
+    }
+}
+
+const setupInstallListeners = () => {
+    window.electronAPI?.onInstallProgress((data: any) => {
+        if (data.gameId === game.value.slug) {
+            installingGameId.value = data.gameId
+            isInstalling.value = true
+            installProgress.value = {
+                progress: data.progress,
+                speed: data.speed || '',
+                downloaded: data.downloaded || '',
+                total: data.total || '',
+                eta: data.eta || '',
+                type: data.type || 'download'
+            }
+        }
+    })
+
+    window.electronAPI?.onInstallComplete((data: any) => {
+        if (data.gameId === game.value.slug) {
+            isInstalling.value = false
+            installingGameId.value = null
+            isInstalled.value = true
+            hasUpdate.value = false
+            
+            new Notification('Ether Desktop', {
+                body: `✅ ${data.gameName} installé avec succès!`,
+                silent: false
+            })
+        }
+    })
+
+    window.electronAPI?.onInstallError((data: any) => {
+        if (data.gameId === game.value.slug) {
+            isInstalling.value = false
+            installingGameId.value = null
+            alert(`Erreur d'installation: ${data.error}`)
+        }
+    })
+}
+
+const installGame = async () => {
+    if (!window.electronAPI) {
+        alert('L\'installation nécessite l\'application desktop Electron')
+        return
+    }
+
+    try {
+        // 1. Get Install Path
+        let installPath = localStorage.getItem('etherInstallPath')
+        if (!installPath) {
+            // Show path selector (we need to add the component to template)
+            // For now, alert if not set
+            alert('Veuillez d\'abord définir un dossier d\'installation dans la bibliothèque')
+            return
+        }
+
+        isInstalling.value = true
+
+        // 2. Fetch Manifest
+        console.log('Fetching manifest for game:', game.value.slug)
+        // Note: Using the endpoint structure requested by user
+        const manifestResponse = await axios.get(`/games/${game.value.slug}/manifest`)
+        const manifestUrl = manifestResponse.data.manifestUrl
+
+        if (!manifestUrl) {
+            throw new Error('Manifest URL not found')
+        }
+
+        // 3. Download Manifest Content
+        const manifestContent = await axios.get(manifestUrl)
+        const { downloadUrl, version } = manifestContent.data
+
+        if (!downloadUrl) {
+            throw new Error('Download URL not found in manifest')
+        }
+
+        // 4. Start Installation via Electron
+        await window.electronAPI?.installGame(
+            downloadUrl,
+            installPath,
+            game.value.slug, // folder name
+            game.value.slug, // game id
+            game.value.gameName,
+            version
+        )
+
+    } catch (err: any) {
+        console.error('Installation failed:', err)
+        isInstalling.value = false
+        alert(err.message || 'Erreur lors de l\'initialisation de l\'installation')
+    }
+}
+
+const launchGame = async () => {
+    if (!window.electronAPI) return
+    
+    const installPath = localStorage.getItem('etherInstallPath')
+    if (!installPath) return
+
+    try {
+        await window.electronAPI?.launchGame(installPath, game.value.slug)
+    } catch (err: any) {
+        alert(`Erreur de lancement: ${err.message}`)
+    }
+}
 
 const purchaseGame = async () => {
     if (!game.value) return
@@ -110,9 +251,56 @@ const purchaseGame = async () => {
                         <button v-if="!userOwnsGame && game.price > 0" @click="purchaseGame" :disabled="isPurchasing" class="btn-primary">
                             {{ isPurchasing ? '⏳ Achat en cours...' : `💳 Acheter (${game.price} CHF)` }}
                         </button>
-                        <a v-else-if="userOwnsGame && game.zipUrl" :href="game.zipUrl" download class="btn-primary">
-                            ⬇️ Télécharger le jeu
-                        </a>
+                        
+                        <!-- Installation / Play Buttons -->
+                        <div v-else-if="userOwnsGame" class="install-actions">
+                            <div v-if="installingGameId === (game.slug || game.gameId)" class="install-progress">
+                                <div class="progress-info">
+                                    <span class="progress-status">
+                                        {{ installProgress.type === 'download' ? 'Téléchargement' : 'Extraction' }} 
+                                        {{ installProgress.progress }}%
+                                    </span>
+                                    <span class="progress-details">
+                                        {{ installProgress.speed }} - ETA: {{ installProgress.eta }}
+                                    </span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" :style="{ width: installProgress.progress + '%' }"></div>
+                                </div>
+                                <div class="progress-stats">
+                                    {{ installProgress.downloaded }} / {{ installProgress.total }}
+                                </div>
+                            </div>
+
+                            <div v-else class="action-buttons">
+                                <button 
+                                    v-if="!isInstalled" 
+                                    @click="installGame" 
+                                    class="btn-primary btn-install"
+                                    :disabled="isInstalling"
+                                >
+                                    {{ isInstalling ? 'Installation...' : '⬇️ Installer' }}
+                                </button>
+                                
+                                <button 
+                                    v-else-if="hasUpdate" 
+                                    @click="installGame" 
+                                    class="btn-primary btn-update"
+                                    :disabled="isInstalling"
+                                >
+                                    {{ isInstalling ? 'Mise à jour...' : '🔄 Mettre à jour' }}
+                                </button>
+
+                                <button 
+                                    v-if="isInstalled" 
+                                    @click="launchGame" 
+                                    class="btn-primary btn-play"
+                                >
+                                    ▶ Jouer
+                                </button>
+                            </div>
+                        </div>
+
                         <button v-else-if="!userOwnsGame && game.price === 0" @click="purchaseGame" :disabled="isPurchasing" class="btn-primary">
                             {{ isPurchasing ? '⏳ Ajout en cours...' : '🎁 Ajouter à la bibliothèque' }}
                         </button>

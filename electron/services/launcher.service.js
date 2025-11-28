@@ -57,7 +57,7 @@ class LauncherService {
                 manifest.mainFile?.endsWith('.html')) {
                 // HTML-based game - launch in new window
                 return await this.launchHTMLGame(gamePath, manifest, userData);
-            } else if (manifest.platform === 'exe' && manifest.entryPoint?.endsWith('.exe')) {
+            } else if (manifest.platform === 'exe' && (manifest.entryPoint?.endsWith('.exe') || manifest.executable_path?.endsWith('.exe'))) {
                 // Native executable
                 return await this.launchExecutable(gamePath, manifest, userData);
             } else {
@@ -147,7 +147,8 @@ class LauncherService {
      * Launch a native executable game
      */
     async launchExecutable(gamePath, manifest, userData) {
-        const exePath = path.join(gamePath, manifest.entryPoint);
+        const entryFile = manifest.executable_path || manifest.entryPoint;
+        const exePath = path.join(gamePath, entryFile);
 
         // Check if executable exists
         try {

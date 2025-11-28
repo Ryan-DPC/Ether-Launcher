@@ -107,9 +107,9 @@ const installationService = require('./services/installation.service');
 const activeInstallations = new Map(); // Track active installations
 
 // Start game installation
-ipcMain.handle('installation:start', async (event, { zipUrl, installPath, gameFolderName, gameId, gameName }) => {
+ipcMain.handle('installation:start', async (event, { zipUrl, installPath, gameFolderName, gameId, gameName, version }) => {
     try {
-        console.log('[IPC] Starting installation for ' + gameName);
+        console.log('[IPC] Starting installation for ' + gameName + ' v' + version);
 
         // Check if already installing
         if (activeInstallations.has(gameId)) {
@@ -131,7 +131,7 @@ ipcMain.handle('installation:start', async (event, { zipUrl, installPath, gameFo
 
         // Start installation (async)
         installationService
-            .installGame(zipUrl, installPath, gameFolderName, onProgress)
+            .installGame(zipUrl, installPath, gameFolderName, version, onProgress)
             .then((result) => {
                 activeInstallations.delete(gameId);
                 mainWindow.webContents.send('installation:complete', {

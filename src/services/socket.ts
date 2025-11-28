@@ -18,8 +18,11 @@ class SocketService {
 
         // Initialize socket connection to central WebSocket server
         const socketUrl = import.meta.env.VITE_WEBSOCKET_URL || 'https://server-yi14.onrender.com';
+        console.log('🔌 Connecting to socket with token:', token.substring(0, 10) + '...')
         this.socket = io(socketUrl, {
-            auth: { token },
+            auth: {
+                token: `Bearer ${token}` // Try adding Bearer prefix here too
+            },
             extraHeaders: {
                 Authorization: `Bearer ${token}`
             },

@@ -22,22 +22,6 @@ export interface ElectronAPI {
     checkGameInstalled: (installPath: string, gameFolderName: string) => Promise<boolean>;
     uninstallGame: (installPath: string, gameFolderName: string) => Promise<{ success: boolean }>;
 
-    // Installation events
-    onInstallProgress: (callback: (data: any) => void) => void;
-    onInstallComplete: (callback: (data: any) => void) => void;
-    onInstallError: (callback: (data: any) => void) => void;
-
-    // Game Launcher
-    launchGame: (
-        installPath: string,
-        gameFolderName: string
-    ) => Promise<{ success: boolean; message: string; gameId?: string }>;
-    getActiveGames: () => Promise<Array<{
-        gameId: string;
-        gameName: string;
-        startTime: number;
-        type: 'window' | 'process';
-    }>>;
     closeGame: (gameId: string) => Promise<{ success: boolean; message: string }>;
 
     // Platform info

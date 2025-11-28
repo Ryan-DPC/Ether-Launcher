@@ -12,8 +12,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isElectron: () => ipcRenderer.invoke('app:isElectron'),
 
     // Installation
-    installGame: (zipUrl, installPath, gameFolderName, gameId, gameName) =>
-        ipcRenderer.invoke('installation:start', { zipUrl, installPath, gameFolderName, gameId, gameName }),
+    installGame: (zipUrl, installPath, gameFolderName, gameId, gameName, version) =>
+        ipcRenderer.invoke('installation:start', { zipUrl, installPath, gameFolderName, gameId, gameName, version }),
     getInstallStatus: (gameId) => ipcRenderer.invoke('installation:getStatus', gameId),
     cancelInstall: (gameId) => ipcRenderer.invoke('installation:cancel', gameId),
 
